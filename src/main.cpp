@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <chrono>
 #include "node.hpp"
 #include "pair_util.hpp"
 
@@ -13,6 +14,10 @@ using std::pair;
 using std::swap;
 using std::greater;
 using std::ostream;
+using std::chrono::high_resolution_clock;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
+using std::chrono::duration_cast;
 
 // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
 vector<pair<int, int> > solvedBoard;
@@ -59,10 +64,16 @@ int main() {
          << "Starting search..." << endl;
 
     node initial{tiles};
+    auto start = high_resolution_clock::now();
     node final = general_search(initial, manhattan_heuristic);
+    auto stop = high_resolution_clock::now();
 
     cout << "Finished board: " << endl << final.tiles
-         << "Final depth: " << final.depth << endl;
+         << "Solution depth: " << final.depth << endl;
+
+    auto duration = duration_cast<milliseconds>(stop - start);
+
+    cout << "Time elapsed: " << duration.count() / 1000.0 << " seconds" << endl;
 
     return 0;
 }
@@ -112,7 +123,7 @@ node general_search(node initialState, int (*heuristic_function) (const vector<v
         }
         ++numNodesExpanded;
     }
-    
+
     // Failed to solve puzzle
     return node{{{-1}}, -1, -1};
 }
