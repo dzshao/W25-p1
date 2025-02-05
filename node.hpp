@@ -11,17 +11,17 @@ struct node {
     int cost;
     int depth;
 
-    node(const vector<vector<int> > &tile, int cost, int depth) : tiles(tile), cost(cost), depth(depth) {};
-    node(const vector<vector<int> > &tile, int cost) : tiles(tile), cost(cost), depth(0) {};
-    node(const vector<vector<int> > &tile) : tiles(tile), cost(0), depth(0) {};
-    node() : tiles({{0}}), cost(0), depth(0) {};
+    node(const vector<vector<int> > &tile = {{0}}, int cost = 0, int depth = 0) : tiles(tile), cost(cost), depth(depth) {};
 
-    // Comparison operator for compatiblity with priority_queue
+    // Comparison operators for compatiblity with priority_queue
     bool operator<(const node &rhs) const {
         return this->cost < rhs.cost;
     }
     bool operator>(const node &rhs) const {
         return this->cost > rhs.cost;
+    }
+    bool operator==(const node &rhs) const {
+        return this->cost == rhs.cost;
     }
 };
 
