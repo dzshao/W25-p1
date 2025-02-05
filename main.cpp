@@ -12,6 +12,8 @@ using std::priority_queue;
 using std::pair;
 using std::swap;
 using std::greater;
+using std::optional;
+using std::nullopt;
 
 /* Takes in an initial node and a pointer to a function to use as the heuristic function.
 If no heuristic function is provided, it defaults to 0 every time. */
@@ -29,16 +31,18 @@ bool checkCompletedTile(const vector<vector<int> > &);
 /* Returns the coordinates of the '0' space on a board*/
 pair<int, int> findBlank(const vector<vector<int> > &);
 
+/* Returns the coordinates of any given tile on a board*/
+pair<int, int> findTile(const vector<vector<int> > &, int);
+
 int main() {
-    vector<vector<int> > tiles = {{1,3,6}, 
-                                  {5,0,7}, 
-                                  {4,8,2}};
+    vector<vector<int> > tiles = {{6,4,7}, 
+                                  {8,5,0}, 
+                                  {3,2,1}};
 
-    cout << misplaced_tile_heuristic(tiles) << endl;
-
+    cout << "Manhattan distance: " <<  manhattan_heuristic(tiles) << endl;
     node initial{tiles};
 
-    node final = general_search(initial, misplaced_tile_heuristic);
+    node final = general_search(initial, manhattan_heuristic);
     for (vector<int> row : final.tiles) {
         for (int tile : row) { 
             cout << tile << " ";
@@ -59,10 +63,12 @@ node general_search(node initialState, int (*heuristic_function) (const vector<v
 
     node currNode;
 
+    int numNodesExpanded = 0;
     while (!queue.empty()) {
         currNode = queue.top();
         queue.pop();
         if (checkCompletedTile(currNode.tiles)) {
+            cout << "Nodes expanded: " << numNodesExpanded << endl;
             return currNode;
         }
 
@@ -83,38 +89,73 @@ node general_search(node initialState, int (*heuristic_function) (const vector<v
 
             queue.push(newNode);
         }
-
+        ++numNodesExpanded;
     }
-    return queue.top();
+    return {};
 }
 
 int misplaced_tile_heuristic(const vector<vector<int> > &tiles) {
     int numMisplacedTiles = 0;
-    int currVal = 1;
+    int expectedVal = 1;
 
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
+    int currVal = tiles.at(0).at(0);
     // Count number of tiles not in correct position
     for (int i = 0; i < numRows; ++i) {
         numColumns = tiles.at(i).size();
         for (int j = 0; j < numColumns; ++j) {
-            if (tiles.at(i).at(j) != currVal) {
+            currVal = tiles.at(i).at(j);
+            
+            // Skip over blank tile
+            if (currVal == 0) {
+                ++expectedVal;
+                continue;
+            }
+            if (currVal != expectedVal) {
                 ++numMisplacedTiles;
             }
-            ++currVal;
+            ++expectedVal;
         }
     }
 
-    // Tile in bottom corner should be 0, above for loop checks if it is equal to (numRows * numColumns) instead, so must correct for that
-    if (tiles.at(numRows - 1).at(numColumns - 1) == 0) {
-        --numMisplacedTiles;
-    }
+    // // Tile in bottom corner should be 0, above for loop checks if it is equal to (numRows * numColumns) instead, so must correct for that
+    // if (tiles.at(numRows - 1).at(numColumns - 1) == 0) {
+    //     --numMisplacedTiles;
+    // }
     return numMisplacedTiles;
 }
 
 int manhattan_heuristic(const vector<vector<int> > &tiles) {
-    // TODO
-    return 0;
+    vector<pair<int, int> > solvedBoard;
+    int numRows = tiles.size();
+    int numColumns = tiles.at(0).size();
+
+    for (int i = 0; i < numRows; ++i) {
+        numColumns = tiles.at(i).size();
+        for (int j = 0; j < numColumns; ++j) {
+            solvedBoard.push_back({i, j});
+        }
+    }
+
+    int totalManhattanDistance = 0;
+    numRows = tiles.size();
+    numColumns = tiles.at(0).size();
+
+    int currVal = tiles.at(0).at(0);
+    for (int i = 0; i < numRows; ++i) {
+        numColumns = tiles.at(i).size();
+        for (int j = 0; j < numColumns; ++j) {
+            currVal = tiles.at(i).at(j);
+            // Skip over blank tile
+            if (currVal == 0) {
+                continue;
+            }
+            totalManhattanDistance += abs(i - solvedBoard.at(currVal - 1).first) + abs(j - solvedBoard.at(currVal - 1).second);
+        }
+    }
+
+    return totalManhattanDistance;
 }
 
 bool checkCompletedTile(const vector<vector<int> > &tiles) {
@@ -125,12 +166,16 @@ bool checkCompletedTile(const vector<vector<int> > &tiles) {
 }
 
 pair<int, int> findBlank(const vector<vector<int> > &tiles) {
+    return findTile(tiles, 0);
+}
+
+pair<int, int> findTile(const vector<vector<int> > &tiles, int num) {
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
     for (int i = 0; i < numRows; ++i) {
         numColumns = tiles.at(i).size();
         for (int j = 0; j < numColumns; ++j) {
-            if (tiles.at(i).at(j) == 0) {
+            if (tiles.at(i).at(j) == num) {
                 return {i, j};
             }
         }

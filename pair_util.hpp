@@ -11,4 +11,15 @@ pair<T, T> operator+(const pair<T, T> &lhs, const pair<T, T> &rhs) {
     return {lhs.first + rhs.first, lhs.second + rhs.second};
 }
 
+template <typename T>
+pair<T, T> operator-(const pair<T, T> &lhs, const pair<T, T> &rhs) {
+    return {lhs.first - rhs.first, lhs.second - rhs.second};
+}
+
+// Returns the manhattan distance between two coordinates
+template <typename T>
+int manhattan_distance(const pair<T, T> &lhs, const pair<T, T> &rhs) {
+    return abs(lhs.first - rhs.first) + abs(lhs.second - rhs.second);
+}
+
 #endif
