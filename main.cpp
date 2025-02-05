@@ -35,9 +35,9 @@ pair<int, int> findBlank(const vector<vector<int> > &);
 pair<int, int> findTile(const vector<vector<int> > &, int);
 
 int main() {
-    vector<vector<int> > tiles = {{6,4,7}, 
-                                  {8,5,0}, 
-                                  {3,2,1}};
+    vector<vector<int> > tiles = {{8,6,7}, 
+                                  {2,5,4}, 
+                                  {3,0,1}};
 
     cout << "Manhattan distance: " <<  manhattan_heuristic(tiles) << endl;
     node initial{tiles};
@@ -64,11 +64,16 @@ node general_search(node initialState, int (*heuristic_function) (const vector<v
     node currNode;
 
     int numNodesExpanded = 0;
+    int maxQueueSize = 1;
     while (!queue.empty()) {
+        if (queue.size() > maxQueueSize) {
+            maxQueueSize = queue.size();
+        }
         currNode = queue.top();
         queue.pop();
         if (checkCompletedTile(currNode.tiles)) {
-            cout << "Nodes expanded: " << numNodesExpanded << endl;
+            cout << "Nodes expanded: " << numNodesExpanded << endl
+                 << "Max Queue Size: " << maxQueueSize << endl;
             return currNode;
         }
 
@@ -118,11 +123,6 @@ int misplaced_tile_heuristic(const vector<vector<int> > &tiles) {
             ++expectedVal;
         }
     }
-
-    // // Tile in bottom corner should be 0, above for loop checks if it is equal to (numRows * numColumns) instead, so must correct for that
-    // if (tiles.at(numRows - 1).at(numColumns - 1) == 0) {
-    //     --numMisplacedTiles;
-    // }
     return numMisplacedTiles;
 }
 
