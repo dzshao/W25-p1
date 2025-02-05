@@ -12,8 +12,10 @@ using std::priority_queue;
 using std::pair;
 using std::swap;
 using std::greater;
-using std::optional;
-using std::nullopt;
+using std::ostream;
+
+// Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
+vector<pair<int, int> > solvedBoard;
 
 /* Takes in an initial node and a pointer to a function to use as the heuristic function.
 If no heuristic function is provided, it defaults to 0 every time. */
@@ -25,7 +27,7 @@ int misplaced_tile_heuristic(const vector<vector<int> > &);
 /* Takes in a 2D vector and returns the total manhattan distance of the tiles. */
 int manhattan_heuristic(const vector<vector<int> > &);
 
-/* Checks if a board is complete.  */
+/* Checks if a board is complete. */
 bool checkCompletedTile(const vector<vector<int> > &);
 
 /* Returns the coordinates of the '0' space on a board*/
@@ -34,22 +36,33 @@ pair<int, int> findBlank(const vector<vector<int> > &);
 /* Returns the coordinates of any given tile on a board*/
 pair<int, int> findTile(const vector<vector<int> > &, int);
 
+/* Print out board. */
+ostream& operator<<(ostream& out, const vector<vector<int> > &rhs);
+
 int main() {
     vector<vector<int> > tiles = {{8,6,7}, 
                                   {2,5,4}, 
                                   {3,0,1}};
+    // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
+    int numRows = tiles.size();
+    int numColumns = tiles.at(0).size();
 
-    cout << "Manhattan distance: " <<  manhattan_heuristic(tiles) << endl;
-    node initial{tiles};
-
-    node final = general_search(initial, manhattan_heuristic);
-    for (vector<int> row : final.tiles) {
-        for (int tile : row) { 
-            cout << tile << " ";
+    for (int i = 0; i < numRows; ++i) {
+        numColumns = tiles.at(i).size();
+        for (int j = 0; j < numColumns; ++j) {
+            solvedBoard.push_back({i, j});
         }
-        cout << endl;
     }
-    cout << "Final depth: " << final.depth << endl;
+
+    // cout << "Manhattan distance: " <<  manhattan_heuristic(tiles) << endl;
+    cout << "Initial board: " << endl << tiles << endl
+         << "Starting search..." << endl;
+
+    node initial{tiles};
+    node final = general_search(initial, manhattan_heuristic);
+
+    cout << "Finished board: " << endl << final.tiles
+         << "Final depth: " << final.depth << endl;
 
     return 0;
 }
@@ -99,6 +112,8 @@ node general_search(node initialState, int (*heuristic_function) (const vector<v
         }
         ++numNodesExpanded;
     }
+    
+    // Failed to solve puzzle
     return node{{{-1}}, -1, -1};
 }
 
@@ -130,21 +145,9 @@ int misplaced_tile_heuristic(const vector<vector<int> > &tiles) {
 }
 
 int manhattan_heuristic(const vector<vector<int> > &tiles) {
-    // Create 0-indexed list of correct coordinates for the respective tile number
-    vector<pair<int, int> > solvedBoard;
+    int totalManhattanDistance = 0;
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
-
-    for (int i = 0; i < numRows; ++i) {
-        numColumns = tiles.at(i).size();
-        for (int j = 0; j < numColumns; ++j) {
-            solvedBoard.push_back({i, j});
-        }
-    }
-
-    int totalManhattanDistance = 0;
-    numRows = tiles.size();
-    numColumns = tiles.at(0).size();
 
     int currVal = tiles.at(0).at(0);
     for (int i = 0; i < numRows; ++i) {
@@ -186,4 +189,14 @@ pair<int, int> findTile(const vector<vector<int> > &tiles, int num) {
         }
     }
     return {-1, -1};
+}
+
+ostream& operator<<(ostream& out, const vector<vector<int> > &rhs) { 
+    for (vector<int> row : rhs) {
+        for (int tile : row) { 
+            out << tile << " ";
+        }
+        out << endl;
+    }
+    return out;
 }
