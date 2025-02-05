@@ -55,6 +55,7 @@ int main() {
 }
 
 node general_search(node initialState, int (*heuristic_function) (const vector<vector<int> > &)) {
+    // Create min-queue sorted based on cost of nodes
     priority_queue <node, vector<node>, greater<node>> queue;
     queue.push(initialState);
 
@@ -65,6 +66,7 @@ node general_search(node initialState, int (*heuristic_function) (const vector<v
 
     int numNodesExpanded = 0;
     int maxQueueSize = 1;
+    
     while (!queue.empty()) {
         if (queue.size() > maxQueueSize) {
             maxQueueSize = queue.size();
@@ -79,6 +81,7 @@ node general_search(node initialState, int (*heuristic_function) (const vector<v
 
         pair<int, int> initBlankCoord = findBlank(currNode.tiles);
         for (pair<int, int> offset : directionVectors) {
+            // Calculate new coordinate of blank tile
             pair<int, int> currCoord = initBlankCoord + offset;
 
             // Check if movement is within bounds
@@ -96,7 +99,7 @@ node general_search(node initialState, int (*heuristic_function) (const vector<v
         }
         ++numNodesExpanded;
     }
-    return {};
+    return node{{{-1}}, -1, -1};
 }
 
 int misplaced_tile_heuristic(const vector<vector<int> > &tiles) {
@@ -127,6 +130,7 @@ int misplaced_tile_heuristic(const vector<vector<int> > &tiles) {
 }
 
 int manhattan_heuristic(const vector<vector<int> > &tiles) {
+    // Create 0-indexed list of correct coordinates for the respective tile number
     vector<pair<int, int> > solvedBoard;
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
@@ -159,6 +163,7 @@ int manhattan_heuristic(const vector<vector<int> > &tiles) {
 }
 
 bool checkCompletedTile(const vector<vector<int> > &tiles) {
+    // Must be solved if no tiles are misplaced
     if (misplaced_tile_heuristic(tiles) == 0) {
         return true;
     }
