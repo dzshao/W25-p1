@@ -3,6 +3,7 @@
 #include <queue>
 #include <chrono>
 #include <fstream>
+#include <set>
 #include "node.hpp"
 #include "pair_util.hpp"
 
@@ -20,6 +21,7 @@ using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 using std::ifstream;
+using std::set;
 
 // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
 vector<pair<uint8_t, uint8_t> > solvedBoard;
@@ -94,8 +96,10 @@ int main() {
 template <typename T>
 node<T> general_search(node<T> initialState, int (*heuristic_function) (const vector<vector<T> > &)) {
     // Create min-queue sorted based on cost of nodes
-    priority_queue <node<T>, vector<node<T> >, greater<node<T> > > queue;
+    priority_queue<node<T>, vector<node<T> >, greater<node<T> > > queue;
     queue.push(initialState);
+
+    set<node<T> > visitedStates;
 
     // Vectors to represent movement of blank tile (Right, Left, Up, Down)
     const vector<pair<int16_t, int16_t> > directionVectors = {{0, 1}, {0, -1}, {-1, 0}, {1, 0}};
@@ -134,15 +138,22 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
                 continue;
             }
 
-            node newNode{currNode.tiles, currNode.depth + 1, currNode.depth + 1};
+            node newNode(currNode.tiles, currNode.depth + 1, currNode.depth + 1);
             // Perform blank tile movement
             swap(newNode.tiles.at(initBlankCoord.first).at(initBlankCoord.second), newNode.tiles.at(currCoord.first).at(currCoord.second));
+            // if (visitedStates.count(newNode) != 0) {
+            //     continue;
+            // }
             // Update cost of node using heuristic + cost to reach node (depth)
             newNode.cost += heuristic_function(newNode.tiles);
 
             queue.push(newNode);
         }
         ++numNodesExpanded;
+        if (numNodesExpanded % 1000000 == 0) {
+            cout << "Expanded: " << numNodesExpanded << " Max Queue Size: " << maxQueueSize << " Curr depth: " << currNode.depth << endl << currNode.tiles;
+        }
+        // visitedStates.insert(currNode);
 
         stop = high_resolution_clock::now();
         timeSpent = duration_cast<milliseconds>(stop - start);
