@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <chrono>
+#include <fstream>
 #include "node.hpp"
 #include "pair_util.hpp"
 
@@ -18,36 +19,48 @@ using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 using std::chrono::duration_cast;
+using std::ifstream;
 
 // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
-vector<pair<int, int> > solvedBoard;
+vector<pair<uint8_t, uint8_t> > solvedBoard;
 
-/* Takes in an initial node and a pointer to a function to use as the heuristic function.
+// Maximum timeout value for the search (millisconds)
+const int MAX_TIMEOUT = INT_MAX;
+
+/* Takes in an initial node and a function to use as the heuristic function.
 If no heuristic function is provided, it defaults to 0 every time. */
-node general_search(node , int (*) (const vector<vector<int> > &) = [](const vector<vector<int> > &) -> int {return 0;});
+template <typename T>
+node<T> general_search(node<T> , int (*) (const vector<vector<T> > &) = [](const vector<vector<T> > &) -> int {return 0;});
 
 /* Takes in a 2D vector and returns the number of tiles that are in the incorrect position. */
-int misplaced_tile_heuristic(const vector<vector<int> > &);
+template <typename T>
+int misplaced_tile_heuristic(const vector<vector<T> > &);
 
 /* Takes in a 2D vector and returns the total manhattan distance of the tiles. */
-int manhattan_heuristic(const vector<vector<int> > &);
+template <typename T>
+int manhattan_heuristic(const vector<vector<T> > &);
 
 /* Checks if a board is complete. */
-bool checkCompletedTile(const vector<vector<int> > &);
+template <typename T>
+bool checkCompletedTile(const vector<vector<T> > &);
 
-/* Returns the coordinates of the '0' space on a board*/
-pair<int, int> findBlank(const vector<vector<int> > &);
+/* Returns the coordinates of the '0' space on a board. */
+template <typename T>
+pair<int, int> findBlank(const vector<vector<T> > &);
 
 /* Returns the coordinates of any given tile on a board*/
-pair<int, int> findTile(const vector<vector<int> > &, int);
+template <typename T>
+pair<int, int> findTile(const vector<vector<T> > &, int);
 
 /* Print out board. */
-ostream& operator<<(ostream& out, const vector<vector<int> > &rhs);
+template <typename T>
+ostream& operator<<(ostream& out, const vector<vector<T> > &rhs);
 
 int main() {
-    vector<vector<int> > tiles = {{8,6,7}, 
-                                  {2,5,4}, 
-                                  {3,0,1}};
+    vector<vector<int8_t> > tiles = {{0,6,7}, 
+                                     {2,5,4}, 
+                                     {3,8,1}};
+    
     // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
@@ -61,7 +74,7 @@ int main() {
 
     // cout << "Manhattan distance: " <<  manhattan_heuristic(tiles) << endl;
     cout << "Initial board: " << endl << tiles << endl
-         << "Starting search..." << endl;
+         << "Starting search..." << endl << endl;
 
     node initial{tiles};
     auto start = high_resolution_clock::now();
@@ -71,30 +84,37 @@ int main() {
     cout << "Finished board: " << endl << final.tiles
          << "Solution depth: " << final.depth << endl;
 
-    auto duration = duration_cast<milliseconds>(stop - start);
+    auto timeSpent = duration_cast<milliseconds>(stop - start);
 
-    cout << "Time elapsed: " << duration.count() / 1000.0 << " seconds" << endl;
+    cout << "Time elapsed: " << timeSpent.count() / 1000.0 << " seconds" << endl;
 
     return 0;
 }
 
-node general_search(node initialState, int (*heuristic_function) (const vector<vector<int> > &)) {
+template <typename T>
+node<T> general_search(node<T> initialState, int (*heuristic_function) (const vector<vector<T> > &)) {
     // Create min-queue sorted based on cost of nodes
-    priority_queue <node, vector<node>, greater<node>> queue;
+    priority_queue <node<T>, vector<node<T> >, greater<node<T> > > queue;
     queue.push(initialState);
 
     // Vectors to represent movement of blank tile (Right, Left, Up, Down)
-    vector<pair<int, int> > directionVectors = {{0, 1}, {0, -1}, {-1, 0}, {1, 0}};
+    const vector<pair<int16_t, int16_t> > directionVectors = {{0, 1}, {0, -1}, {-1, 0}, {1, 0}};
 
-    node currNode;
+    node<T> currNode;
 
     int numNodesExpanded = 0;
     int maxQueueSize = 1;
     
-    while (!queue.empty()) {
+    // Timer to check for timeout
+    auto start = high_resolution_clock::now();
+    auto stop = high_resolution_clock::now();
+    auto timeSpent = duration_cast<milliseconds>(stop - start);
+
+    while (!queue.empty() && timeSpent.count() < MAX_TIMEOUT) {
         if (queue.size() > maxQueueSize) {
             maxQueueSize = queue.size();
         }
+
         currNode = queue.top();
         queue.pop();
         if (checkCompletedTile(currNode.tiles)) {
@@ -104,33 +124,47 @@ node general_search(node initialState, int (*heuristic_function) (const vector<v
         }
 
         pair<int, int> initBlankCoord = findBlank(currNode.tiles);
+        pair<int, int> currCoord = initBlankCoord;
         for (pair<int, int> offset : directionVectors) {
             // Calculate new coordinate of blank tile
-            pair<int, int> currCoord = initBlankCoord + offset;
+            currCoord = initBlankCoord + offset;
 
             // Check if movement is within bounds
-            if (currCoord.first >= currNode.tiles.size() || currCoord.second >= currNode.tiles.at(currCoord.first).size()) {
+            if (currCoord.first >= currNode.tiles.size() || currCoord.second >= currNode.tiles.at(currCoord.first).size() || currCoord.first < 0 || currCoord.second < 0) {
                 continue;
             }
 
-            node newNode{currNode.tiles, 0, currNode.depth + 1};
+            node newNode{currNode.tiles, currNode.depth + 1, currNode.depth + 1};
             // Perform blank tile movement
             swap(newNode.tiles.at(initBlankCoord.first).at(initBlankCoord.second), newNode.tiles.at(currCoord.first).at(currCoord.second));
             // Update cost of node using heuristic + cost to reach node (depth)
-            newNode.cost = newNode.depth + heuristic_function(newNode.tiles);
+            newNode.cost += heuristic_function(newNode.tiles);
 
             queue.push(newNode);
         }
         ++numNodesExpanded;
+
+        stop = high_resolution_clock::now();
+        timeSpent = duration_cast<milliseconds>(stop - start);
     }
 
-    // Failed to solve puzzle
-    return node{{{-1}}, -1, -1};
+    if (!queue.empty()) {
+        cout << "Search timeout" << endl;
+    } else {
+        cout << "Search failed" << endl;
+    }
+    cout << "Nodes expanded: " << numNodesExpanded << endl
+         << "Max Queue Size: " << maxQueueSize << endl;
+
+    // Failed to solve puzzle or timeout
+    return node<T>({{0}}, -1, -1);
 }
 
-int misplaced_tile_heuristic(const vector<vector<int> > &tiles) {
+template <typename T>
+int misplaced_tile_heuristic(const vector<vector<T> > &tiles)
+{
     int numMisplacedTiles = 0;
-    int expectedVal = 1;
+    T expectedVal = 1;
 
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
@@ -155,7 +189,8 @@ int misplaced_tile_heuristic(const vector<vector<int> > &tiles) {
     return numMisplacedTiles;
 }
 
-int manhattan_heuristic(const vector<vector<int> > &tiles) {
+template <typename T>
+int manhattan_heuristic(const vector<vector<T> > &tiles) {
     int totalManhattanDistance = 0;
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
@@ -176,7 +211,8 @@ int manhattan_heuristic(const vector<vector<int> > &tiles) {
     return totalManhattanDistance;
 }
 
-bool checkCompletedTile(const vector<vector<int> > &tiles) {
+template <typename T>
+bool checkCompletedTile(const vector<vector<T> > &tiles) {
     // Must be solved if no tiles are misplaced
     if (misplaced_tile_heuristic(tiles) == 0) {
         return true;
@@ -184,11 +220,13 @@ bool checkCompletedTile(const vector<vector<int> > &tiles) {
     return false;
 }
 
-pair<int, int> findBlank(const vector<vector<int> > &tiles) {
+template <typename T>
+pair<int, int> findBlank(const vector<vector<T> > &tiles) {
     return findTile(tiles, 0);
 }
 
-pair<int, int> findTile(const vector<vector<int> > &tiles, int num) {
+template <typename T>
+pair<int, int> findTile(const vector<vector<T> > &tiles, int num) {
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
     for (int i = 0; i < numRows; ++i) {
@@ -202,8 +240,9 @@ pair<int, int> findTile(const vector<vector<int> > &tiles, int num) {
     return {-1, -1};
 }
 
-ostream& operator<<(ostream& out, const vector<vector<int> > &rhs) { 
-    for (vector<int> row : rhs) {
+template <typename T>
+ostream& operator<<(ostream& out, const vector<vector<T> > &rhs) { 
+    for (vector<T> row : rhs) {
         for (int tile : row) { 
             out << tile << " ";
         }
