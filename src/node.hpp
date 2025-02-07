@@ -22,7 +22,26 @@ struct node {
         return this->cost > rhs.cost;
     }
     bool operator==(const node &rhs) const {
-        return this->cost == rhs.cost;
+        if (this->tiles == rhs.tiles && this->depth >= rhs.depth) {
+            return true;
+        }
+        return false;
+    }
+
+    // Used for compatibility with std::set
+    static bool setComparison(const node &lhs, const node &rhs) {
+        if (lhs.tiles != rhs.tiles) {
+            return lhs.tiles < rhs.tiles;
+        }
+        // Returns false if tiles are the same
+        return false;
+    }
+};
+
+template <typename T>
+struct nodeHash{
+    size_t operator()(const node<T> &n) const  {
+        return std::hash<int>()(n.cost) ^ (std::hash<int>()(n.depth) << 1);
     }
 };
 

@@ -59,9 +59,13 @@ template <typename T>
 ostream& operator<<(ostream& out, const vector<vector<T> > &rhs);
 
 int main() {
-    vector<vector<int8_t> > tiles = {{0,6,7}, 
-                                     {2,5,4}, 
-                                     {3,8,1}};
+    vector<vector<int8_t> > tiles = {{0,1,6},
+                                     {5,3,2},
+                                     {4,7,8}};
+    // vector<vector<int8_t> > tiles = {{13,10,9,7},
+    //                                  {2,1,0,12},
+    //                                  {15,11,14,3},
+    //                                  {4,8,6,5}};
     
     // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
     int numRows = tiles.size();
@@ -99,7 +103,7 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
     priority_queue<node<T>, vector<node<T> >, greater<node<T> > > queue;
     queue.push(initialState);
 
-    set<node<T> > visitedStates;
+    set<node<T>, bool(*)(const node<T>&, const node<T>&)> visitedStates(node<T>::setComparison);
 
     // Vectors to represent movement of blank tile (Right, Left, Up, Down)
     const vector<pair<int16_t, int16_t> > directionVectors = {{0, 1}, {0, -1}, {-1, 0}, {1, 0}};
@@ -141,9 +145,9 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
             node newNode(currNode.tiles, currNode.depth + 1, currNode.depth + 1);
             // Perform blank tile movement
             swap(newNode.tiles.at(initBlankCoord.first).at(initBlankCoord.second), newNode.tiles.at(currCoord.first).at(currCoord.second));
-            // if (visitedStates.count(newNode) != 0) {
-            //     continue;
-            // }
+            if (visitedStates.count(newNode) != 0) {
+                continue;
+            }
             // Update cost of node using heuristic + cost to reach node (depth)
             newNode.cost += heuristic_function(newNode.tiles);
 
@@ -151,9 +155,9 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
         }
         ++numNodesExpanded;
         if (numNodesExpanded % 1000000 == 0) {
-            cout << "Expanded: " << numNodesExpanded << " Max Queue Size: " << maxQueueSize << " Curr depth: " << currNode.depth << endl << currNode.tiles;
+            cout << "Expanded: " << numNodesExpanded << " Max Queue Size: " << maxQueueSize << " Curr depth: " << currNode.depth << "Time Elapsed:" << duration_cast<milliseconds>(stop - start).count() / 1000.0 << endl << currNode.tiles;
         }
-        // visitedStates.insert(currNode);
+        visitedStates.insert(currNode);
 
         stop = high_resolution_clock::now();
         timeSpent = duration_cast<milliseconds>(stop - start);
