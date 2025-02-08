@@ -1,6 +1,29 @@
 # W25 Project 1
+Sliding tile puzzle solver. Created using C++17.
 
 # Usage
+Compiled using g++ running the command:
+
+```
+g++ ./src/main.cpp -std=c++17 -o tile_solver
+```
+
+Usage of the program:
+
+```
+./tile_solver [test_case.txt]
+```
+
+If no test case is provided, a default case is automatically used:
+```
+0 1 6
+5 3 2
+4 7 8
+```
+
+You are then prompted to select which search algorithm to use, enter 1 for Uniform Distance, 2 for Misplaced Tile, and 3 for Manhattan Distance. 
+
+After either completing the puzzle or failing by visiting all possible states/timing out, the program prints the total number of nodes expanded, maximum queue size, and time elapsed.
 
 # Running Custom Test Cases
 Test cases are stored in .txt files. The first line in each test case is a single integer that indicates the search/heursitic function to use for that case.
