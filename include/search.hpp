@@ -66,8 +66,8 @@ void solveBoard(const vector<vector<T> > &tiles, int searchNum) {
          << "Starting search..." << endl << endl;
 
     node initial{tiles};
-    auto start = high_resolution_clock::now();
     node<T> final; 
+    auto start = high_resolution_clock::now();
     if (searchNum == 1) {
         cout << "Search used: Uniform Cost Search" << endl;
         final = general_search(initial);
@@ -132,22 +132,25 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
         pair<int, int> initBlankCoord = findBlank(currNode.tiles);
         pair<int, int> currCoord = initBlankCoord;
 
-        int numRows = static_cast<int>(currNode.tiles.size());
+        // Try all possible moves
         for (pair<int, int> offset : directionVectors) {
             // Calculate new coordinate of blank tile
             currCoord = initBlankCoord + offset;
 
             // Check if movement is within bounds
-            if (currCoord.second < 0 || currCoord.first < 0 || currCoord.first >= numRows || currCoord.second >= static_cast<int>(currNode.tiles.at(currCoord.first).size())) {
+            if (currCoord.second < 0 || currCoord.first < 0 || currCoord.first >= static_cast<int>(currNode.tiles.size()) || currCoord.second >= static_cast<int>(currNode.tiles.at(currCoord.first).size())) {
                 continue;
             }
 
             node newNode(currNode.tiles, currNode.depth + 1, currNode.depth + 1);
             // Perform blank tile movement
             swap(newNode.tiles.at(initBlankCoord.first).at(initBlankCoord.second), newNode.tiles.at(currCoord.first).at(currCoord.second));
+
+            // Skip if node was already visited
             if (visitedStates.count(newNode) != 0) {
                 continue;
             }
+
             // Update cost of node using heuristic + cost to reach node (depth)
             newNode.cost += heuristic_function(newNode.tiles);
 
@@ -155,7 +158,7 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
         }
         ++numNodesExpanded;
         // if (numNodesExpanded % 1000000 == 0) {
-        //     cout << "Expanded: " << numNodesExpanded << " Max Queue Size: " << maxQueueSize << " Curr depth: " << currNode.depth << " Time Elapsed:" << duration_cast<milliseconds>(stop - start).count() / 1000.0 << " seconds" << endl << currNode.tiles;
+        //     cout << "Expanded: " << numNodesExpanded << " Max Queue Size: " << maxQueueSize << " Curr depth: " << currNode.depth << " Time Elapsed: " << duration_cast<milliseconds>(stop - start).count() / 1000.0 << " seconds" << endl << currNode.tiles;
         // }
         visitedStates.insert(currNode);
 

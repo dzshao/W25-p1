@@ -67,15 +67,17 @@ pair<int, vector<vector<T> > > parseTestCase(ifstream &fin) {
         cerr << "Error: Tried parsing test case without open file" << endl;
         throw std::exception();
     }
+
     pair<int, vector<vector<T> > > testCase;
     testCase.first = 0;
     // Reach in search number
     fin >> testCase.first;
 
-    string currLine;
     // Remove newline left by >>
     fin.ignore();
+    
     // Read one row of the board
+    string currLine;
     getline(fin, currLine);
 
     int currRow = 0;
