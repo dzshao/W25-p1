@@ -53,6 +53,7 @@ Multiple test cases can be included in the same file, separated by a blank line.
 2 1 0 12
 15 11 14 3
 4 8 6 5
+
 ```
 
 The above example uses the Uniform Cost Search to solve the 3x3 puzzle, then uses Manhattan Distance for solving the following 4x4 puzzle.
