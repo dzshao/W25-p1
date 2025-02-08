@@ -1,13 +1,17 @@
 #include <iostream>
 #include <vector>
+#include <string>
 #include <queue>
 #include <chrono>
 #include <fstream>
+#include <sstream>
 #include <set>
 #include "node.hpp"
 #include "pair_util.hpp"
 
 using std::cout;
+using std::cerr;
+using std::getline;
 using std::cin;
 using std::endl;
 using std::vector;
@@ -21,16 +25,24 @@ using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 using std::ifstream;
+using std::stringstream;
 using std::set;
+using std::string;
 
-// Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
+/* Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance) */
 vector<pair<uint8_t, uint8_t> > solvedBoard;
 
-// Maximum timeout value for the search (millisconds)
+/* Maximum timeout value for the search (millisconds) */
 const int MAX_TIMEOUT = INT_MAX;
 
+/* Solves the given board. The integer indiciates the search function to use (1 = Uniform Cost Search, 2 = Misplaced Tile, 3 = Manhattan Distance).
+Prints out the number of nodes expanded, max queue size, and time elapsed once completed. */
+template <typename T>
+void solveBoard(const vector<vector<T> >, int);
+
 /* Takes in an initial node and a function to use as the heuristic function.
-If no heuristic function is provided, it defaults to 0 every time. */
+If no heuristic function is provided, it defaults to 0 every time. 
+Returns the node of the solved state. */
 template <typename T>
 node<T> general_search(node<T> , int (*) (const vector<vector<T> > &) = [](const vector<vector<T> > &) -> int {return 0;});
 
@@ -58,18 +70,55 @@ pair<int, int> findTile(const vector<vector<T> > &, int);
 template <typename T>
 ostream& operator<<(ostream& out, const vector<vector<T> > &rhs);
 
-int main() {
-    vector<vector<int8_t> > tiles = {{0,1,6},
-                                     {5,3,2},
-                                     {4,7,8}};
-    // vector<vector<int8_t> > tiles = {{13,10,9,7},
-    //                                  {2,1,0,12},
-    //                                  {15,11,14,3},
-    //                                  {4,8,6,5}};
-    
-    // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
+/* Parses a single test case from a file. 
+Returns a pair<int, vector<..> > where the int represents the search to use and the vector is the initial board. */
+template <typename T>
+pair<int, vector<vector<T> > > parseTestCase(ifstream&);
+
+int main(int argc, char* argv[]) {
+    if (argc > 2) {
+        cerr << "Usage: ./program [input_test.txt]" << endl;
+        return -1;
+    }
+
+    // Default case if no testcase is provided
+    if (argc == 1) {
+        cout << "No file provided, using default test case." << endl
+             << "Select which search function to use, Uniform Cost Search (1), Misplaced Tile (2), Manhattan Distance (3): ";
+        int searchNum = 0;
+        cin >> searchNum;
+        cout << endl;
+
+        vector<vector<int8_t> > tiles= {{0,1,6},
+                                        {5,3,2},
+                                        {4,7,8}};
+
+        solveBoard(tiles, searchNum);
+    } else {
+        ifstream fin;
+        fin.open(argv[1]);
+        if (!fin.is_open()) {
+            cerr << "Error: Failed to open file \'" << argv[1] << "\'" << endl;
+            return -1;
+        }
+
+        // Keep looping until end of file
+        while (fin) {
+            pair<int, vector<vector<int16_t> > > test = parseTestCase<int16_t>(fin);
+            solveBoard(test.second, test.first);
+        }
+    }
+
+    return 0;
+}
+
+template <typename T>
+void solveBoard(const vector<vector<T> > tiles, int searchNum) {
+        // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
+    
+    solvedBoard = {};
 
     for (int i = 0; i < numRows; ++i) {
         numColumns = tiles.at(i).size();
@@ -78,23 +127,34 @@ int main() {
         }
     }
 
-    // cout << "Manhattan distance: " <<  manhattan_heuristic(tiles) << endl;
     cout << "Initial board: " << endl << tiles << endl
          << "Starting search..." << endl << endl;
 
     node initial{tiles};
     auto start = high_resolution_clock::now();
-    node final = general_search(initial, manhattan_heuristic);
+    node<T> final; 
+    if (searchNum == 1) {
+        cout << "Search used: Uniform Cost Search" << endl;
+        final = general_search(initial);
+    } else if (searchNum == 2) {
+        cout << "Search used: Misplaced Tile" << endl;
+        final = general_search(initial, misplaced_tile_heuristic);
+    } else if (searchNum == 3) {
+        cout << "Search used: Manhattan distance" << endl;
+        final = general_search(initial, manhattan_heuristic);
+    } else {
+        cerr << "Error: Invalid search number provided (expected [1,2,3], received \'" << searchNum << "\')" << endl;
+        throw std::exception();
+    }
+
     auto stop = high_resolution_clock::now();
-
-    cout << "Finished board: " << endl << final.tiles
-         << "Solution depth: " << final.depth << endl;
-
     auto timeSpent = duration_cast<milliseconds>(stop - start);
 
-    cout << "Time elapsed: " << timeSpent.count() / 1000.0 << " seconds" << endl;
-
-    return 0;
+    cout << "Finished board: " << endl << final.tiles
+         << "Solution depth: " << final.depth << endl
+         << "Time elapsed: " << timeSpent.count() / 1000.0 << " seconds" << endl;
+    
+    return;
 }
 
 template <typename T>
@@ -154,9 +214,9 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
             queue.push(newNode);
         }
         ++numNodesExpanded;
-        if (numNodesExpanded % 1000000 == 0) {
-            cout << "Expanded: " << numNodesExpanded << " Max Queue Size: " << maxQueueSize << " Curr depth: " << currNode.depth << "Time Elapsed:" << duration_cast<milliseconds>(stop - start).count() / 1000.0 << endl << currNode.tiles;
-        }
+        // if (numNodesExpanded % 1000000 == 0) {
+        //     cout << "Expanded: " << numNodesExpanded << " Max Queue Size: " << maxQueueSize << " Curr depth: " << currNode.depth << " Time Elapsed:" << duration_cast<milliseconds>(stop - start).count() / 1000.0 << endl << currNode.tiles;
+        // }
         visitedStates.insert(currNode);
 
         stop = high_resolution_clock::now();
@@ -219,6 +279,7 @@ int manhattan_heuristic(const vector<vector<T> > &tiles) {
             if (currVal == 0) {
                 continue;
             }
+            // Calculate manhattan distance by finding difference between actual x and y coordinate and the expected coordinate
             totalManhattanDistance += abs(i - solvedBoard.at(currVal - 1).first) + abs(j - solvedBoard.at(currVal - 1).second);
         }
     }
@@ -244,6 +305,8 @@ template <typename T>
 pair<int, int> findTile(const vector<vector<T> > &tiles, int num) {
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
+
+    // Iterates over the board until it finds the desired number
     for (int i = 0; i < numRows; ++i) {
         numColumns = tiles.at(i).size();
         for (int j = 0; j < numColumns; ++j) {
@@ -252,6 +315,8 @@ pair<int, int> findTile(const vector<vector<T> > &tiles, int num) {
             }
         }
     }
+
+    // Not found
     return {-1, -1};
 }
 
@@ -264,4 +329,43 @@ ostream& operator<<(ostream& out, const vector<vector<T> > &rhs) {
         out << endl;
     }
     return out;
+}
+
+template <typename T>
+pair<int, vector<vector<T> > > parseTestCase(ifstream &fin) {
+    if (!fin.is_open()) {
+        cerr << "Error: Tried parsing test case without open file" << endl;
+        throw std::exception();
+    }
+    pair<int, vector<vector<T> > > testCase;
+    testCase.first = 0;
+    // Reach in search number
+    fin >> testCase.first;
+
+    string currLine;
+    // Remove newline left by >>
+    fin.ignore();
+    // Read one row of the board
+    getline(fin, currLine);
+
+    int currRow = 0;
+    T currVal = 0;
+
+    // Iterate until blank line or end of file
+    while (!currLine.empty() && fin) {
+        stringstream ss(currLine);
+        testCase.second.push_back({});
+
+        // Parse individual tiles from row
+        ss >> currVal;
+        while (ss) {
+            testCase.second.at(currRow).push_back(currVal);
+            ss >> currVal;
+        }
+
+        getline(fin, currLine);
+        ++currRow;
+    }
+
+    return testCase;
 }
