@@ -150,7 +150,7 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
             if (visitedStates.count(newNode) != 0) {
                 continue;
             }
-
+            
             // Update cost of node using heuristic + cost to reach node (depth)
             newNode.cost += heuristic_function(newNode.tiles);
 
