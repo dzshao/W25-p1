@@ -38,11 +38,4 @@ struct node {
     }
 };
 
-template <typename T>
-struct nodeHash{
-    size_t operator()(const node<T> &n) const  {
-        return std::hash<int>()(n.cost) ^ (std::hash<int>()(n.depth) << 1);
-    }
-};
-
 #endif
