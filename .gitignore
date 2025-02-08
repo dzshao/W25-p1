@@ -1,5 +1,7 @@
-**/a.out
-**/a.exe
 *.o
+*.exe
+*.out
 bin/
 obj/
+.vscode
+test.cpp
