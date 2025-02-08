@@ -4,8 +4,11 @@
 #include <vector>
 #include <iostream>
 #include <chrono>
-#include "../include/node.hpp"
-#include "../include/board_util.hpp"
+#include <queue>
+#include <set>
+#include "./node.hpp"
+#include "./board_util.hpp"
+#include "./pair_util.hpp"
 
 using std::cout;
 using std::cerr;
@@ -19,8 +22,8 @@ using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
 using std::chrono::duration_cast;
 
-/* Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance) */
-vector<pair<uint8_t, uint8_t> > solvedBoard;
+/* 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance) */
+vector<pair<uint8_t, uint8_t> > solvedBoard = {};
 
 /* Maximum timeout value for the search (millisconds) */
 const int MAX_TIMEOUT = 900000;
@@ -28,7 +31,7 @@ const int MAX_TIMEOUT = 900000;
 /* Solves the given board. The integer indiciates the search function to use (1 = Uniform Cost Search, 2 = Misplaced Tile, 3 = Manhattan Distance).
 Prints out the number of nodes expanded, max queue size, and time elapsed once completed. */
 template <typename T>
-void solveBoard(const vector<vector<T> >, int);
+void solveBoard(const vector<vector<T> > &, int);
 
 /* Takes in an initial node and a function to use as the heuristic function.
 If no heuristic function is provided, it defaults to 0 every time. 
@@ -48,20 +51,16 @@ int manhattan_heuristic(const vector<vector<T> > &);
 template <typename T>
 bool checkCompletedTile(const vector<vector<T> > &);
 
+/* Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance). */
 template <typename T>
-void solveBoard(const vector<vector<T> > tiles, int searchNum) {
-        // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
-    int numRows = tiles.size();
-    int numColumns = tiles.at(0).size();
-    
-    solvedBoard = {};
+void initializeSolvedBoard(const vector<vector<T> > &);
 
-    for (int i = 0; i < numRows; ++i) {
-        numColumns = tiles.at(i).size();
-        for (int j = 0; j < numColumns; ++j) {
-            solvedBoard.push_back({i, j});
-        }
-    }
+/* Solves the given board. The integer indiciates the search function to use (1 = Uniform Cost Search, 2 = Misplaced Tile, 3 = Manhattan Distance).
+Prints out the number of nodes expanded, max queue size, and time elapsed once completed. */
+template <typename T>
+void solveBoard(const vector<vector<T> > &tiles, int searchNum) {
+    // Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance)
+    initializeSolvedBoard(tiles);
 
     cout << "Initial board: " << endl << tiles << endl
          << "Starting search..." << endl << endl;
@@ -93,6 +92,9 @@ void solveBoard(const vector<vector<T> > tiles, int searchNum) {
     return;
 }
 
+/* Takes in an initial node and a function to use as the heuristic function.
+If no heuristic function is provided, it defaults to 0 every time. 
+Returns the node of the solved state. */
 template <typename T>
 node<T> general_search(node<T> initialState, int (*heuristic_function) (const vector<vector<T> > &)) {
     // Create min-queue sorted based on cost of nodes
@@ -153,7 +155,7 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
         }
         ++numNodesExpanded;
         // if (numNodesExpanded % 1000000 == 0) {
-        //     cout << "Expanded: " << numNodesExpanded << " Max Queue Size: " << maxQueueSize << " Curr depth: " << currNode.depth << " Time Elapsed:" << duration_cast<milliseconds>(stop - start).count() / 1000.0 << endl << currNode.tiles;
+        //     cout << "Expanded: " << numNodesExpanded << " Max Queue Size: " << maxQueueSize << " Curr depth: " << currNode.depth << " Time Elapsed:" << duration_cast<milliseconds>(stop - start).count() / 1000.0 << " seconds" << endl << currNode.tiles;
         // }
         visitedStates.insert(currNode);
 
@@ -173,15 +175,15 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
     return node<T>({{0}}, -1, -1);
 }
 
+/* Takes in a 2D vector and returns the number of tiles that are in the incorrect position. */
 template <typename T>
-int misplaced_tile_heuristic(const vector<vector<T> > &tiles)
-{
+int misplaced_tile_heuristic(const vector<vector<T> > &tiles) {
     int numMisplacedTiles = 0;
     T expectedVal = 1;
 
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
-    int currVal = tiles.at(0).at(0);
+    T currVal = tiles.at(0).at(0);
     // Count number of tiles not in correct position
     for (int i = 0; i < numRows; ++i) {
         numColumns = tiles.at(i).size();
@@ -202,8 +204,13 @@ int misplaced_tile_heuristic(const vector<vector<T> > &tiles)
     return numMisplacedTiles;
 }
 
+/* Takes in a 2D vector and returns the total manhattan distance of the tiles. */
 template <typename T>
 int manhattan_heuristic(const vector<vector<T> > &tiles) {
+    // Check if solvedBoard vector is initialized
+    if (solvedBoard.empty()) {
+        initializeSolvedBoard(tiles);
+    }
     int totalManhattanDistance = 0;
     int numRows = tiles.size();
     int numColumns = tiles.at(0).size();
@@ -225,6 +232,7 @@ int manhattan_heuristic(const vector<vector<T> > &tiles) {
     return totalManhattanDistance;
 }
 
+/* Checks if a board is complete. */
 template <typename T>
 bool checkCompletedTile(const vector<vector<T> > &tiles) {
     // Must be solved if no tiles are misplaced
@@ -232,6 +240,22 @@ bool checkCompletedTile(const vector<vector<T> > &tiles) {
         return true;
     }
     return false;
+}
+
+/* Create 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance). */
+template <typename T>
+void initializeSolvedBoard(const vector<vector<T> > &tiles) {
+    int numRows = tiles.size();
+    int numColumns = tiles.at(0).size();
+    
+    solvedBoard = {};
+
+    for (int i = 0; i < numRows; ++i) {
+        numColumns = tiles.at(i).size();
+        for (int j = 0; j < numColumns; ++j) {
+            solvedBoard.push_back({i, j});
+        }
+    }
 }
 
 #endif

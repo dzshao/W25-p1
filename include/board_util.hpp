@@ -21,11 +21,13 @@ pair<int, int> findTile(const vector<vector<T> > &, int);
 template <typename T>
 ostream& operator<<(ostream& out, const vector<vector<T> > &rhs);
 
+/* Returns the coordinates of the '0' space on a board. */
 template <typename T>
 pair<int, int> findBlank(const vector<vector<T> > &tiles) {
     return findTile(tiles, 0);
 }
 
+/* Returns the coordinates of any given tile on a board*/
 template <typename T>
 pair<int, int> findTile(const vector<vector<T> > &tiles, int num) {
     int numRows = tiles.size();
@@ -45,6 +47,7 @@ pair<int, int> findTile(const vector<vector<T> > &tiles, int num) {
     return {-1, -1};
 }
 
+/* Print out board. */
 template <typename T>
 ostream& operator<<(ostream& out, const vector<vector<T> > &rhs) { 
     for (vector<T> row : rhs) {

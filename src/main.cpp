@@ -1,15 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <queue>
-#include <chrono>
 #include <fstream>
 #include <sstream>
-#include <set>
-#include "../include/node.hpp"
-#include "../include/pair_util.hpp"
 #include "../include/search.hpp"
-#include "../include/board_util.hpp"
 
 using std::cout;
 using std::getline;
@@ -59,11 +53,14 @@ int main(int argc, char* argv[]) {
             pair<int, vector<vector<int16_t> > > test = parseTestCase<int16_t>(fin);
             solveBoard(test.second, test.first);
         }
+        fin.close();
     }
 
     return 0;
 }
 
+/* Parses a single test case from a file. 
+Returns a pair<int, vector<..> > where the int represents the search to use and the vector is the initial board. */
 template <typename T>
 pair<int, vector<vector<T> > > parseTestCase(ifstream &fin) {
     if (!fin.is_open()) {

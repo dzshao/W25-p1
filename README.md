@@ -10,7 +10,7 @@ Test cases are stored in .txt files. The first line in each test case is a singl
 3 = Manhattan Distance 
 ```
 
-The next `n` lines represent the board, with each tile separated by a space, and each row separated by a newline. Rows can be of different lengths, and any number of rows can be entered.
+The next `n` lines represent the board, with each tile separated by a space, and each row separated by a newline. Rows can be of different lengths, and any number of rows can be entered (as long as the total number of tiles is less than 32768).
 ```
 4 5 6
 7 8 0
