@@ -13,7 +13,9 @@ struct node {
     int cost;
     int depth;
 
-    node(const vector<vector<T> > &tile = {{}}, int cost = 0, int depth = 0) : tiles(tile), cost(cost), depth(depth) {};
+    node(const vector<vector<T> > &tile = {{}}, int cost = 0, int depth = 0) : tiles(tile), 
+                                                                               cost(cost), 
+                                                                               depth(depth) {};
 
     // Comparison operators for compatiblity with priority_queue
     bool operator<(const node &rhs) const {

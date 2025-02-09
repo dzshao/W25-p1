@@ -25,8 +25,11 @@ using std::chrono::duration_cast;
 /* 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance) */
 vector<pair<uint8_t, uint8_t> > solvedBoard = {};
 
-/* Maximum timeout value for the search (millisconds) */
+/* Maximum timeout value for the search (millisconds). */
 const int MAX_TIMEOUT = 900000;
+
+/* Enables printing out the current node being expanded. */
+const bool ENABLE_TRACEBACK = false;
 
 /* Solves the given board. The integer indiciates the search function to use (1 = Uniform Cost Search, 2 = Misplaced Tile, 3 = Manhattan Distance).
 Prints out the number of nodes expanded, max queue size, and time elapsed once completed. */
@@ -85,8 +88,7 @@ void solveBoard(const vector<vector<T> > &tiles, int searchNum) {
     auto stop = high_resolution_clock::now();
     auto timeSpent = duration_cast<milliseconds>(stop - start);
 
-    cout << "Finished board: " << endl << final.tiles
-         << "Solution depth: " << final.depth << endl
+    cout << "Solution depth: " << final.depth << endl
          << "Time elapsed: " << timeSpent.count() / 1000.0 << " seconds" << endl;
     
     return;
@@ -99,6 +101,7 @@ template <typename T>
 node<T> general_search(node<T> initialState, int (*heuristic_function) (const vector<vector<T> > &)) {
     // Create min-queue sorted based on cost of nodes
     priority_queue<node<T>, vector<node<T> >, greater<node<T> > > queue;
+    initialState.cost = heuristic_function(initialState.tiles);
     queue.push(initialState);
 
     set<node<T>, bool(*)(const node<T>&, const node<T>&)> visitedStates(node<T>::setComparison);
@@ -123,10 +126,17 @@ node<T> general_search(node<T> initialState, int (*heuristic_function) (const ve
 
         currNode = queue.top();
         queue.pop();
+
         if (checkCompletedTile(currNode.tiles)) {
-            cout << "Nodes expanded: " << numNodesExpanded << endl
+            cout << "Goal state found" << endl
+                 << "Nodes expanded: " << numNodesExpanded << endl
                  << "Max Queue Size: " << maxQueueSize << endl;
             return currNode;
+        }
+                
+        if (ENABLE_TRACEBACK) {
+            cout << "Best node to expand with g(n) = " << currNode.depth << " and h(n) = " << (currNode.cost - currNode.depth) << endl
+                << currNode.tiles << endl;
         }
 
         pair<int, int> initBlankCoord = findBlank(currNode.tiles);
