@@ -33,14 +33,22 @@ Test cases are stored in .txt files. The first line in each test case is a singl
 3 = Manhattan Distance 
 ```
 
-The next `n` lines represent the board, with each tile delimited by a space, and each row delimited by a newline. Rows can be of different lengths, and any number of rows can be entered (as long as the total number of tiles is less than 32768).
+The next `n` lines represent the board, with each tile delimited by a space, and each row delimited by a newline. Rows can be of variable, and any number of rows can be entered (as long as the total number of tiles is less than 32768).
 ```
 4 5 6
 7 8 0
 1 2 3
 ```
+```
+1 9 7 4 5
+6 3 12 0 2
+11 8 24 13 15
+16 18 22 19 10
+21 17 23 14 20
+```
+> Boards greater than 3x3 also work
 
-Multiple test cases can be included in the same file, delimited by a blank line.
+Multiple test cases are delimited by a blank line.
 
 ```
 1
@@ -53,7 +61,6 @@ Multiple test cases can be included in the same file, delimited by a blank line.
 2 1 0 12
 15 11 14 3
 4 8 6 5
-
 ```
 
 The above example uses the Uniform Cost Search to solve the 3x3 puzzle, then uses A* with the Manhattan Distance heuristic for solving the following 4x4 puzzle.
