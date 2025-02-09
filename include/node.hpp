@@ -25,7 +25,7 @@ struct node {
         return this->cost > rhs.cost;
     }
     bool operator==(const node &rhs) const {
-        if (this->tiles == rhs.tiles && this->depth >= rhs.depth) {
+        if (this->tiles == rhs.tiles) {
             return true;
         }
         return false;
