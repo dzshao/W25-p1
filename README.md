@@ -25,6 +25,8 @@ You are then prompted to select which search algorithm to use, enter 1 for Unifo
 
 After either completing the puzzle or failing by visiting all possible states/timing out, the program prints the total number of nodes expanded, maximum queue size, and time elapsed.
 
+To enable the traceback, set the `ENABLE_TRACEBACK` variable to true in `include/search.hpp`.
+
 # Running Custom Test Cases
 Test cases are stored in .txt files. The first line in each test case is a single integer that indicates the search/heursitic function to use for that case.
 ```
