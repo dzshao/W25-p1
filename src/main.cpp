@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     // Default case if no testcase is provided
     if (argc == 1) {
         cout << "No file provided, using default test case." << endl
-             << "Select which search function to use, Uniform Cost Search (1), Misplaced Tile (2), Manhattan Distance (3): ";
+             << "Select which search function to use, Uniform Cost Search (1), Misplaced Tiles (2), Manhattan Distance (3): ";
         int searchNum = 0;
         cin >> searchNum;
         cout << endl;
@@ -75,7 +75,7 @@ pair<int, vector<vector<T> > > parseTestCase(ifstream &fin) {
 
     // Remove newline left by >>
     fin.ignore();
-    
+
     // Read one row of the board
     string currLine;
     getline(fin, currLine);

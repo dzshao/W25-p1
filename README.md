@@ -21,7 +21,7 @@ If no test case is provided, a default case is automatically used:
 4 7 8
 ```
 
-You are then prompted to select which search algorithm to use, enter 1 for Uniform Distance, 2 for Misplaced Tile, and 3 for Manhattan Distance. 
+You are then prompted to select which search algorithm to use, enter 1 for Uniform Distance, 2 for Misplaced Tiles, and 3 for Manhattan Distance. 
 
 After either completing the puzzle or failing by visiting all possible states/timing out, the program prints the total number of nodes expanded, maximum queue size, and time elapsed.
 
@@ -29,7 +29,7 @@ After either completing the puzzle or failing by visiting all possible states/ti
 Test cases are stored in .txt files. The first line in each test case is a single integer that indicates the search/heursitic function to use for that case.
 ```
 1 = Uniform Cost Search
-2 = Misplaced Tile Heuristic
+2 = Misplaced Tiles Heuristic
 3 = Manhattan Distance 
 ```
 
@@ -39,6 +39,7 @@ The next `n` lines represent the board, with each tile delimited by a space, and
 7 8 0
 1 2 3
 ```
+> Boards greater than 3x3 also work
 ```
 1 9 7 4 5
 6 3 12 0 2
@@ -46,7 +47,6 @@ The next `n` lines represent the board, with each tile delimited by a space, and
 16 18 22 19 10
 21 17 23 14 20
 ```
-> Boards greater than 3x3 also work
 
 Multiple test cases are delimited by a blank line.
 

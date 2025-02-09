@@ -17,7 +17,7 @@ struct node {
                                                                                cost(cost), 
                                                                                depth(depth) {};
 
-    // Comparison operators for compatiblity with priority_queue
+    // Comparison operators for compatibility with priority_queue
     bool operator<(const node &rhs) const {
         return this->cost < rhs.cost;
     }

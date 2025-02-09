@@ -25,13 +25,13 @@ using std::chrono::duration_cast;
 /* 0-indexed list of correct coordinates for the respective tile number (used for manhattan distance) */
 vector<pair<uint8_t, uint8_t> > solvedBoard = {};
 
-/* Maximum timeout value for the search (millisconds). */
+/* Maximum timeout value for the search (milliseconds). */
 const int MAX_TIMEOUT = 900000;
 
 /* Enables printing out the current node being expanded. */
 const bool ENABLE_TRACEBACK = false;
 
-/* Solves the given board. The integer indiciates the search function to use (1 = Uniform Cost Search, 2 = Misplaced Tile, 3 = Manhattan Distance).
+/* Solves the given board. The integer indicates the search function to use (1 = Uniform Cost Search, 2 = Misplaced Tile, 3 = Manhattan Distance).
 Prints out the number of nodes expanded, max queue size, and time elapsed once completed. */
 template <typename T>
 void solveBoard(const vector<vector<T> > &, int);
@@ -58,7 +58,7 @@ bool checkCompletedTile(const vector<vector<T> > &);
 template <typename T>
 void initializeSolvedBoard(const vector<vector<T> > &);
 
-/* Solves the given board. The integer indiciates the search function to use (1 = Uniform Cost Search, 2 = Misplaced Tile, 3 = Manhattan Distance).
+/* Solves the given board. The integer indicates the search function to use (1 = Uniform Cost Search, 2 = Misplaced Tile, 3 = Manhattan Distance).
 Prints out the number of nodes expanded, max queue size, and time elapsed once completed. */
 template <typename T>
 void solveBoard(const vector<vector<T> > &tiles, int searchNum) {
